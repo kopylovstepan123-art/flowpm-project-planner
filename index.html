@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowPM — локальный планировщик проектов</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-logo">F</div>
+        <div>
+          <strong>FlowPM</strong>
+          <span id="workspaceLabel">Локальное рабочее пространство</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Основная навигация">
+        <button class="nav-btn active" data-page="dashboard">Панель</button>
+        <button class="nav-btn" data-page="projects">Проекты</button>
+        <button class="nav-btn" data-page="calendar">Календарь</button>
+        <button class="nav-btn" data-page="inbox">Входящие</button>
+        <button class="nav-btn" data-page="settings">Настройки</button>
+      </nav>
+
+      <div class="local-note">
+        <strong>Только в браузере</strong>
+        <p>Данные хранятся только в этом браузере через localStorage.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Открыть меню">☰</button>
+        <div>
+          <p class="eyebrow" id="pageSubtitle">Локальный центр управления проектами</p>
+          <h1 id="pageTitle">Панель</h1>
+        </div>
+        <div class="top-actions">
+          <button class="btn secondary" id="demoBtn">Загрузить демо</button>
+          <button class="btn primary" id="newTaskBtn">Новая задача</button>
+        </div>
+      </header>
+
+      <section class="content" id="content">
+        <div class="fallback-card">
+          <h2>FlowPM загружается...</h2>
+          <p>Если это сообщение не исчезает, проверьте, что <strong>script.js</strong> лежит в одной папке с <strong>index.html</strong>.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="overlay hidden" id="overlay"></div>
+
+  <section class="drawer hidden" id="taskDrawer" aria-label="Форма задачи">
+    <div class="drawer-head">
+      <div>
+        <p class="eyebrow">Детали задачи</p>
+        <h2 id="drawerTitle">Новая задача</h2>
+      </div>
+      <button class="icon-btn" id="closeDrawerBtn" type="button">×</button>
+    </div>
+
+    <form id="taskForm" class="form">
+      <input type="hidden" id="taskId" />
+
+      <label >Название
+        <input id="taskTitle" type="text" required maxlength="120" placeholder="Например: подготовить бриф проекта" />
+      </label>
+
+      <label >Описание
+        <textarea id="taskDescription" rows="3" maxlength="1500" placeholder="Добавьте контекст"></textarea>
+      </label>
+
+      <div class="grid-2">
+        <label >Проект
+          <select id="taskProject"></select>
+        </label>
+        <label >Статус
+          <select id="taskStatus">
+            <option value="Backlog">Бэклог</option>
+            <option value="To Do">К выполнению</option>
+            <option value="In Progress">В работе</option>
+            <option value="Done">Готово</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="grid-2">
+        <label >Приоритет
+          <select id="taskPriority">
+            <option value="Low">Низкий</option>
+            <option value="Medium" selected>Средний</option>
+            <option value="High">Высокий</option>
+            <option value="Critical">Критический</option>
+          </select>
+        </label>
+        <label >Тип
+          <select id="taskType">
+            <option value="Task">Задача</option>
+            <option value="Milestone">Веха</option>
+            <option value="Risk">Риск</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="grid-2">
+        <label >Дата начала
+          <input id="taskStartDate" type="date" />
+        </label>
+        <label >Дедлайн
+          <input id="taskDueDate" type="date" />
+        </label>
+      </div>
+
+      <label >Чек-лист
+        <textarea id="taskChecklist" rows="3" maxlength="4000" placeholder="Один пункт на строку"></textarea>
+      </label>
+
+      <label >Заметки
+        <textarea id="taskNotes" rows="3" maxlength="4000" placeholder="Личные заметки"></textarea>
+      </label>
+
+      <div id="dependencyInfo" class="dependency-info"></div>
+
+      <div class="drawer-actions">
+        <button class="btn danger" id="deleteTaskBtn" type="button">Удалить</button>
+        <button class="btn primary" type="submit">Сохранить задачу</button>
+      </div>
+    </form>
+  </section>
+
+
+
+  <section class="modal hidden" id="aiPlannerModal" aria-label="AI-планировщик проекта">
+    <div class="modal-content large">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">AI-планировщик</p>
+          <h2>Создать задачи из вводной информации</h2>
+        </div>
+        <button class="icon-btn" id="closeAiPlannerBtn" type="button">×</button>
+      </div>
+
+      <div class="ai-note">
+        <strong>Как это работает:</strong>
+        <span>Опишите проект обычным текстом. FlowPM предложит задачи, даты и связи. Перед добавлением вы увидите предпросмотр.</span>
+      </div>
+
+      <label>Вводная информация по проекту
+        <textarea id="aiProjectBrief" rows="7" maxlength="4000" placeholder="Например: Нужно запустить лендинг за 2 недели. Нужны структура, тексты, дизайн, верстка, тестирование и запуск..."></textarea>
+      </label>
+
+      <div class="grid-2">
+        <label>Дедлайн проекта
+          <input id="aiProjectDeadline" type="date" />
+        </label>
+        <label>Максимум задач
+          <input id="aiMaxTasks" type="number" min="3" max="30" value="10" />
+        </label>
+      </div>
+
+      <div class="toggle-list">
+        <label class="checkline"><input id="aiShouldSchedule" type="checkbox" checked /> Расставить задачи в календарь</label>
+        <label class="checkline"><input id="aiShouldCreateRelations" type="checkbox" checked /> Создать зависимости между задачами</label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn secondary" id="aiMockGenerateBtn" type="button">Тест без API</button>
+        <button class="btn primary" id="aiGenerateBtn" type="button">Сгенерировать через AI</button>
+      </div>
+
+      <p class="muted-small">Для настоящего AI-запроса добавьте API key в настройках. Тестовый режим работает без интернета и создаёт демонстрационный план по вашей вводной.</p>
+    </div>
+  </section>
+
+  <section class="modal hidden" id="aiPreviewModal" aria-label="Предпросмотр AI-плана">
+    <div class="modal-content large">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">Предпросмотр</p>
+          <h2>AI предложил план</h2>
+        </div>
+        <button class="icon-btn" id="closeAiPreviewBtn" type="button">×</button>
+      </div>
+      <div id="aiPreviewContent" class="ai-preview-content"></div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="cancelAiPlanBtn" type="button">Отмена</button>
+        <button class="btn primary" id="applyAiPlanBtn" type="button">Добавить в проект</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast hidden" id="toast"></div>
+  <input id="importFile" type="file" accept="application/json" hidden />
+
+  <script src="script.js"></script>
+</body>
+</html>
